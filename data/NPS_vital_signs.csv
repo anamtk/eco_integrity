@@ -1,0 +1,32 @@
+Category,examples,Count,Type,Habitat
+weather and climate,"temperature, precipitation, wind speed, ice on/off dates",246,abiotic,terrestrial
+water chemistry,"pH, temperature, dissolved oxygen, conductivity",211,abiotic,aquatic
+land cover and use,"area in each land cover and use type, patch size and pattern",203,abiotic,terrestrial
+invasive or exotic species,"Early detection, presence/absence, area",200,flora,terrestrial/aquatic
+Birds,"Species composition, distribution, abundance",189,fauna,terrestrial
+surface water dynamics,"discharge/flow rates, gauage/stage height, lake elevation, spring/seep volume, sea level rise",158,abiotic,aquatic
+ozone,"concentration, damage to sensitive vegeation",140,abiotic,terrestrial
+wet and dry deposition,"wet deposition chemistry, sulfur dioxide concentrations",114,abiotic,aquatic
+visible and particulate matter,"IMPROVE network, visibility and fine particles",113,abiotic,aquatic
+fire and fuel dynamics,"long-term trend of fire frequency, average fire size, average burn severity, toal area affected by fire",105,abiotic,terrestrial
+vegetation complexes,"plant community diversity, relative species/guild abundance, structure/age class, incidence of disease",101,flora,terrestrial
+mammals,"species composition, distribution, abundance",93,fauna,terrestrial
+forest/woodland communities,"community diversity, coverage and abundance, condition and vigor classes, regeneration",93,flora,terrestrial
+soil function and dynamics,"soil nutrients, cover and composition of biological soil crust communities, soil aggregate stability",91,abiotic,terrestrial
+stream/river channel characteristics,"channel width, depth, and gradient, sinuosity, channel cross section, pool frequency, and depth, particle size",89,abiotic,aquatic
+aquatic macroinvertebrates,species composition and abundance,86,fauna,aquatic
+threatened and endangered species and communities,"population estimates, distribution, sex and age ratios",85,flora/fauna,terrestrial/aquatic
+air contaminants,"concentrations of SOCs, PCBs, DDT, Hg",71,abiotic,terrestrial
+groundwater dynamics,"flow rate, depth to ground water, withdrawal rates, recharge rates, volume in aquifer",69,abiotic,terrestrial/aquatic
+amphibians and reptiles,"species distribution and abundance, population age/size structure, species diversity, percent area occupied",54,fauna,terrestrial/aquatic
+grassland/herb communities,"composition, structure, abundance , changes in treeline",51,flora,terrestrial
+fishes,"community composition, abundance, distribution, age classes, occupancy, invasive species",50,fauna,aquatic
+insect pests,"extent of insect-related mortality, distribution and extent of standing dead/stressed, diseased trees, early detection",50,flora/fauna,terrestrial
+riparian communities,"species composition and percent cover, distribution and density of selected plants , canopy height",45,flora,terrestrial/aquatic
+nutrient dynamics,"nitrate, ammonia, DON, nitrite, orthophosphate, total K",45,abiotic,aquatic
+primary production,"normalized differential vegetation index (NDVI), change in length of growing season, carbon fixation",41,flora,terrestrial
+wetland communities,"species composition and percent cover, distribution and density of selected plants , canopy height, aerial extent",40,flora,aquatic
+microorganisms,"fecal coliform, E. coli, cyanobacteria",30,flora/fauna,aquatic
+water toxics,"organic and inorganic toxics, heavy metals",30,abiotic,aquatic
+invasive/exotic animals,"invasive species present, distribution, vegetation types invaded, early detection at invasion points",29,fauna,terrestrial/aquatic
+coastal/oceanographic features and processes,"rate of shoreline change, sea surface elevations, area and degree of subsidence through relative elevation data",29,abiotic,aquatic
