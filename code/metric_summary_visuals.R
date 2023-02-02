@@ -32,6 +32,7 @@ canada <- read.csv(here("data",
 
 colnames(nps)
 
+#make a summary of metric number
 (nps_plot <- nps %>%
   group_by(Type) %>%
   tally(name = "total_metric_categories") %>%
@@ -42,6 +43,7 @@ colnames(nps)
     ylim(0, 15) +
     theme(axis.title.y = element_blank()))
 
+#and again for canada
 (canada_plot <- canada %>%
   group_by(Type) %>%
   tally(name = "total_metric_categories") %>%
@@ -52,9 +54,10 @@ colnames(nps)
     scale_y_continuous(breaks = c(0, 5, 10, 15)) +
     ylim(0, 15))
 
+#plot together
 canada_plot + nps_plot
 
-
+#get frequency with which those metrics are observed
 (nps_freq_plot <- nps %>%
   group_by(Type) %>%
   summarise(avg_num_parks = mean(Count),
