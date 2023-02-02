@@ -67,7 +67,8 @@ canada_plot + nps_plot
     ggplot(aes(x = Type, y = avg_num_parks)) +
     geom_bar(stat = "identity") +
     geom_errorbar(aes(ymin = avg_num_parks - se,
-                      ymax = avg_num_parks + se), width = 0.2))
+                      ymax = avg_num_parks + se), width = 0.2) +
+    labs(x = "Metric type", y = "Average number of parks surveyed for metric", title = "NPS Metric Survey Frequency"))
 
 (nps_nonaquatic <- nps %>%
     filter(Habitat != "aquatic") %>%
