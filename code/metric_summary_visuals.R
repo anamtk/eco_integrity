@@ -68,4 +68,13 @@ canada_plot + nps_plot
     geom_bar(stat = "identity") +
     geom_errorbar(aes(ymin = avg_num_parks - se,
                       ymax = avg_num_parks + se), width = 0.2))
-           
+
+(nps_nonaquatic <- nps %>%
+    filter(Habitat != "aquatic") %>%
+    group_by(Type) %>%
+    tally(name = "total_metric_categories") %>%
+    ggplot(aes(x = Type, y = total_metric_categories)) +
+    geom_bar(stat = "identity") +
+    labs(x = "Metric type", y = "Total metrics in category",
+         title = "Non-aquatic National Park Service Metrics") +
+    ylim(0, 15))          
