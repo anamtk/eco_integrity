@@ -1,0 +1,53 @@
+Measure,Integrity_Category,Type
+Major vegetation distribution,Composition,flora
+Presence of rare/unique habitat,Composition,flora
+Species Richness,Composition,flora/fauna
+Species diversity,Composition,flora/fauna
+Invasive species presence,Composition,flora/fauna
+Presence of at risk speces,Composition,flora/fauna
+Presence of species with important functional roles,Composition,flora/fauna
+Landforms,Composition,abiotic
+Types of water available,Composition,abiotic
+Soil types and land forms,Composition,abiotic
+Geologica formations,Composition,abiotic
+Road density,Composition,human
+Vertical plant structure,Structure,flora
+Dead wood,Structure,abiotic
+Fragmentation/patch composition,Structure,flora
+Connectivity of landscape patches,Structure,flora
+Rangeland conditions,Structure,flora
+Stream habitat,Structure,abiotic
+Stream connectivity,Structure,abiotic
+Riparian habitat,Structure,abiotic
+Tributaries,Structure,abiotic
+Lake attributes,Structure,abiotic
+"Soil texture, soil",Structure,abiotic
+Ozone impacts,Structure,human
+Stream diversions,Structure,human
+Extent of stream diversion,Structure,human
+Watershed morphology,Structure,abiotic
+Water quality/quantity,Structure,abiotic
+Air quality,Structure,abiotic
+"Landslides, geology",Structure,abiotic
+Disturbance ocmposition,Function,abiotic
+Movement/dispersal ability,Function,flora/fauna
+Succession,Function,flora
+Predation,Function,fauna
+Pollination,Function,flora/fauna
+Fire regime,Function,abiotic
+Stream/lake temp,Function,abiotic
+Flow regimes,Function,abiotic
+Sediment transport,Function,abiotic
+Biogeochemistry,Function,abiotic
+Rate of invasion,Function,flora/fauna
+Soil productivity,Function,abiotic
+Energy flow,Function,abiotic
+Prxoimity of patches,Connectivity,abiotic
+Landscape patches,Connectivity,abiotic
+Distribution of streams,Connectivity,abiotic
+Stream length,Connectivity,abiotic
+Watershed morphometry,Connectivity,abiotic
+Available habitat for species to move/disperse,Connectivity,flora/fauna
+Hydrological flow regimes,Connectivity,abiotic
+Stream nutrient transport,Connectivity,abiotic
+Stressors that truncate connectivity,Connectivity,human
