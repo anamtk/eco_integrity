@@ -8,6 +8,7 @@ library(viridis)
 library(RColorBrewer)
 library(tidyverse)
 library(here)
+library(patchwork)
 
 theme_set(theme_bw())
 #import data
@@ -102,6 +103,14 @@ dat4 <- dat3 %>%
 # a
 # dev.off()
 
+ggsave(a,
+       filename = here('pictures',
+                       'R',
+                       'studies_by_year.jpg'),
+       width = 6,
+       height = 4,
+       units = 'in')
+
 
 # Other explorations ------------------------------------------------------
 
@@ -109,29 +118,26 @@ unique(dat$Environment)
 unique(dat$Animal.groups)
 unique(dat$Function.Metric)
 
-env_plot <- dat %>%
+#MAIN FIGURES
+#Environmental bias
+#types of traits
+(env_plot <- dat %>%
   filter(Environment != "") %>%
   group_by(Environment) %>%
   tally() %>%
-  ggplot(aes(x = reorder(Environment, -n), y = n)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Environment", y = "Number of studies")
-
-animal_plot <- dat %>%
-  filter(Animal.groups != "") %>%
-  group_by(Animal.groups) %>%
-  tally() %>%
-  ggplot(aes(x = reorder(Animal.groups, -n), y = n)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Animal groups", y = "Number of studies")
-
-metric_plot <- dat %>%
-  filter(Function.Metric != "") %>%
-  group_by(Function.Metric) %>%
-  tally() %>%
-  ggplot(aes(x = reorder(Function.Metric, -n), y = n)) +
-  geom_bar(stat = "identity") +
-  labs(x = "Was a functional metric calculated?", y = "Number of studies")
+  ggplot(aes(x = reorder(Environment, n), y = n)) +
+  geom_bar(stat = "identity", fill = "#998ec3",color = "black") +
+  labs(x = "Environment", y = "Number of studies") +
+    scale_x_discrete(labels = c("aquatic" = "Aquatic",
+                                "terrestrial" = "Terrestrial",
+                                'multiple' = "Multiple*",
+                                'marine' = "Marine",
+                                "riparian" = "Riparian")) +
+    coord_flip() +
+  theme(axis.text = element_text(size=8, color="black"),
+        axis.title = element_text(size=8, color="black"),
+        legend.text = element_text(size=8, color="black"),
+        panel.grid = element_blank()))
 
 traits <- dat %>%
   separate_longer_delim(Function.notes, delim = ",") %>%
@@ -145,31 +151,67 @@ traits <- dat %>%
                                                           'foraging',
                                                           'feeding behaviors',
                                                           'feeding behaviours',
-                                                          'feeding guild') ~ "trophic traits",
+                                                          'feeding guild') ~ "Feeding",
                                     Function.notes %in% c('habitat', ' habitat', 'microhabitat',
                                                           'foraging locations', 
                                                           'habitat generalism',
                                                           'habitat functions', 
                                                           'habitat assoications',
                                                           'habitat associations',
-                                                          'habitat use') ~ "habitat traits",
+                                                          'habitat use') ~ "Habitat",
                                     Function.notes %in% c('behavior', 'nesting',
-                                                          'migration') ~ "non-feeding behavior traits",
+                                                          'migration') ~ "Behavior",
                                     Function.notes %in% c('mobiility', 'morphology',
-                                                          'body size') ~ "morphology traits",
-                                    Function.notes %in% c("pollution sensitivity", "sensitivity") ~ "human sensitivity traits",
-                                    Function.notes %in% c("functional diversity") ~ "functional diversity metric"))
+                                                          'body size') ~ "Morphology",
+                                    Function.notes %in% c("pollution sensitivity", "sensitivity") ~ "Human sensitivity",
+                                    Function.notes %in% c("functional diversity") ~ "Multiple\u2020"))
 
-trait_plot <- traits %>% 
+(trait_plot <- traits %>% 
   group_by(Function.notes2) %>%
   tally() %>%
-  ggplot(aes(x = reorder(Function.notes2, -n), y = n)) +
-  geom_bar(stat = "identity") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  labs(x = "Functional trait category", y = "Frequency of documentation")
+  ggplot(aes(x = reorder(Function.notes2, n), y = n)) +
+  geom_bar(stat = "identity", fill = "#998ec3", color = "black") +
+    coord_flip() +
+  labs(x = "Functional trait category", y = "Number of studies")+
+    theme(axis.text = element_text(size=8, color="black"),
+          axis.title = element_text(size=8, color="black"),
+          legend.text = element_text(size=8, color="black"),
+          panel.grid = element_blank()))
 
+b <- env_plot + trait_plot +
+  plot_annotation(tag_levels = "A")
 
+ggsave(b,
+       filename = here('pictures',
+                       'R',
+                       'study_content.jpg'),
+       width = 6,
+       height = 2.5,
+       units = 'in')
 
+# Supplementary plots -----------------------------------------------------
+
+#animal groups
+(animal_plot <- dat %>%
+    filter(Animal.groups != "") %>%
+    group_by(Animal.groups) %>%
+    tally() %>%
+    ggplot(aes(x = reorder(Animal.groups, n), y = n)) +
+    geom_bar(stat = "identity", fill = "#998ec3", , color="black") +
+    labs(x = "Animal group", y = "Number of studies") +
+    coord_flip() +
+    theme(axis.text = element_text(size=8, color="black"),
+          axis.title = element_text(size=8, color="black"),
+          legend.text = element_text(size=8, color="black"),
+          panel.grid = element_blank()))
+
+(metric_plot <- dat %>%
+    filter(Function.Metric != "") %>%
+    group_by(Function.Metric) %>%
+    tally() %>%
+    ggplot(aes(x = reorder(Function.Metric, -n), y = n)) +
+    geom_bar(stat = "identity", fill = "#998ec3", , color="black") +
+    labs(x = "Was a functional metric calculated?", y = "Number of studies"))
 # Geography ---------------------------------------------------------------
 
 dat_geo <- dat %>%
@@ -215,11 +257,25 @@ dat_geo <- dat %>%
                                Geography == "The Americas" ~ "Americas",
                                TRUE ~ NA_character_))
 
-geography_plot <- dat_geo %>%
+(geography_plot <- dat_geo %>%
   filter(Geography != "") %>%
   group_by(Continent) %>%
   tally() %>%
-  ggplot(aes(x = reorder(Continent, -n), y = n)) +
-    geom_bar(stat = 'identity') +
-  labs(x = "Continent", y = "Number of studies")
-  
+  ggplot(aes(x = reorder(Continent, n), y = n)) +
+    geom_bar(stat = 'identity', fill = "#998ec3", color="black") +
+  labs(x = "Continent", y = "Number of studies") +
+    coord_flip()+
+    theme(axis.text = element_text(size=8, color="black"),
+          axis.title = element_text(size=8, color="black"),
+          legend.text = element_text(size=8, color="black"),
+          panel.grid = element_blank()))
+
+metric_plot + (animal_plot / geography_plot) +
+  plot_annotation(tag_levels = "A")
+
+ggsave(filename = here('pictures',
+                       'R',
+                       'supp_review_fig.jpg'),
+       width = 7,
+       height = 4,
+       units = 'in')
