@@ -55,3 +55,55 @@ chordDiagram(
 
 
 dev.off()
+
+
+# Four --------------------------------------------------------------------
+
+#dev.off()
+circos.clear()
+
+row1 <- c(0, 1, 1, 1)
+row2 <- c(1, 0, 1, 1)
+row3 <- c(1, 1, 0, 1)
+row4 <- c(1, 1, 1, 0)
+
+data2 <- rbind(row1, row2, row3, row4)
+
+colnames(data2) <- c("Monitoring Technology", 'Data Availability', 'Computation Capacity', 'Functional Ecology')
+rownames(data2) <- colnames(data2)
+
+data2_long <- as.data.frame(data2) %>%
+  rownames_to_column %>%
+  gather(key = 'key', value = 'value', -rowname) %>%
+  mutate(value = case_when(rowname == key ~0,
+                           TRUE ~ value))
+
+circos.par(start.degree = 90, gap.degree = 4, track.margin = c(-0.1, 0.1), points.overflow.warning = FALSE)
+par(mar = rep(0, 4))
+
+# color palette
+mycolor <- c('#b35806','#d8daeb', '#f1a340','#542788')
+
+jpeg(here("pictures",
+          "R", 
+          "flow_diagram2.jpeg"),
+     width = 900,
+     height = 900)
+
+# Base plot
+chordDiagram(
+  x = data2_long, 
+  grid.col = mycolor,
+  transparency = 0.25,
+  directional = 1,
+  direction.type = c("arrows", "diffHeight"), 
+  diffHeight  = -0.04,
+  annotationTrack = "grid", 
+  annotationTrackHeight = c(0.05, 0.1),
+  link.arr.type = "big.arrow", 
+  link.sort = TRUE, 
+  link.largest.ontop = TRUE)
+
+
+
+dev.off()

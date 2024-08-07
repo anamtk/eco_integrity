@@ -112,6 +112,65 @@ ggsave(a,
        units = 'in')
 
 
+# Another option ----------------------------------------------------------
+
+dat5 <- dat2 %>%
+  dplyr::select(about_integrity, integrity_calculated,
+                include_animals, animal_communities) %>%
+  pivot_longer(1:4,
+               names_to = "var",
+               values_to = "value") %>%
+  mutate(value = case_when(value == "No" ~ 0,
+                           value == "Yes" ~ 1)) %>%
+  group_by(var) %>%
+  summarise(sum = sum(value)) %>%
+  ungroup() %>% 
+  add_row(var = "total", sum = 279) %>%
+  mutate(var = factor(var, levels = c("total", 
+                                      "about_integrity",
+                                      "integrity_calculated", 
+                                      "include_animals",
+                                      "animal_communities")),
+         varID = as.numeric(var)) %>%
+  arrange(varID) %>%
+  mutate(diff = sum - lead(sum)) %>%
+  mutate(diff = case_when(var == "animal_communities" ~ sum,
+                          TRUE ~ diff)) %>%
+  #for graphing
+  mutate(y = 1) 
+
+(b <- dat5 %>%
+    arrange(var) %>%
+    ggplot(aes(x = y, y = diff, fill= var)) +
+    geom_col(position = "fill") +
+    theme_bw() +
+    scale_fill_brewer(palette = "Oranges",
+                      labels = c('total' = "Total papers in literature review (n = 278)",
+                                 'about_integrity' = "Is the paper about ecological integrity?",
+                                 'integrity_calculated' = "Is ecological integrity calculated?",
+                                 'include_animals' = "Does the integrity metric include animals?",
+                                 'animal_communities' = "Does the integrity metric include animal communities?")) +
+    ylab("Proportion of papers") + xlab(NULL) +
+    scale_y_continuous(labels = scales::percent) +
+    xlim(0.5, 2.25) +
+    theme(legend.position = c(0.3, 0.82),
+          legend.title = element_blank(),
+          axis.text = element_text(size=8, color="black"),
+          axis.title = element_text(size=8, color="black"),
+          legend.text = element_text(size=8, color="black"),
+          panel.grid = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank()) +
+    coord_flip())
+
+ggsave(b,
+       filename = here('pictures',
+                       'R',
+                       'studies_total.jpg'),
+       width = 6,
+       height = 4.5,
+       units = 'in')
+
 # Other explorations ------------------------------------------------------
 
 unique(dat$Environment)
