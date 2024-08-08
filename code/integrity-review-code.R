@@ -9,6 +9,7 @@ library(RColorBrewer)
 library(tidyverse)
 library(here)
 library(patchwork)
+library(ggforce)
 
 theme_set(theme_bw())
 #import data
@@ -43,58 +44,58 @@ dat2 <- dat %>%
 
 
 # simplify data frame
-dat2 <- dat2[,c(6:8,10:11)]
+#dat2 <- dat2[,c(6:8,10:11)]
 
 # change chacater to integer
-dat2[dat2=="Yes"] <- 1
-dat2[dat2=="No"] <- 0
-dat2[is.na(dat2)] <- 0
-
-dat2 <- dat2 %>%
-  mutate_if(is.character, as.numeric)
-
-# get rid of nestedness
-dat2[,4][dat2[,5] == 1] <-0
-dat2[,3][dat2[,4] == 1] <-0
-dat2[,2][dat2[,3] == 1] <-0
+# dat2[dat2=="Yes"] <- 1
+# dat2[dat2=="No"] <- 0
+# dat2[is.na(dat2)] <- 0
+# 
+# dat2 <- dat2 %>%
+#   mutate_if(is.character, as.numeric)
+# 
+# # get rid of nestedness
+# dat2[,4][dat2[,5] == 1] <-0
+# dat2[,3][dat2[,4] == 1] <-0
+# dat2[,2][dat2[,3] == 1] <-0
 
 # change to long format
-dat3 <- dat2 %>%
-  pivot_longer(cols = 2:5,
-               names_to = "variable",
-               values_to = "value")
+# dat3 <- dat2 %>%
+#   pivot_longer(cols = 2:5,
+#                names_to = "variable",
+#                values_to = "value")
 
 # summarize by year
-dat4 <- dat3 %>% 
-  group_by(Year, variable) %>% 
-  summarise(sum=sum(value, na.rm = T)) %>%
-  mutate(variable = factor(variable, levels = c('about_integrity',
-                                                'integrity_calculated',
-                                                'include_animals',
-                                                'animal_communities')))
-
-
-# plot
-(a <- dat4 %>%
-    arrange(variable) %>%
-    ggplot(aes(x = Year,
-                y = sum,
-                fill = variable)) +
-  geom_col(position = "stack") +
-  theme_bw() +
-  scale_fill_brewer(palette = "Oranges",
-                    labels = c('about_integrity' = "Is the paper about ecological integrity?",
-                               'integrity_calculated' = "Is ecological integrity calculated?",
-                               'include_animals' = "Does the integrity metric include animals?",
-                               'animal_communities' = "Does the integrity metric include animal communities?")) +
-  ylab("Number of papers") + xlab(NULL) +
-  theme(legend.position = c(0.3, 0.82),
-        legend.title = element_blank(),
-        axis.text = element_text(size=8, color="black"),
-        axis.title = element_text(size=8, color="black"),
-        legend.text = element_text(size=8, color="black"),
-        panel.grid = element_blank()))
-#a
+# dat4 <- dat3 %>% 
+#   group_by(Year, variable) %>% 
+#   summarise(sum=sum(value, na.rm = T)) %>%
+#   mutate(variable = factor(variable, levels = c('about_integrity',
+#                                                 'integrity_calculated',
+#                                                 'include_animals',
+#                                                 'animal_communities')))
+# 
+# 
+# # plot
+# (a <- dat4 %>%
+#     arrange(variable) %>%
+#     ggplot(aes(x = Year,
+#                 y = sum,
+#                 fill = variable)) +
+#   geom_col(position = "stack") +
+#   theme_bw() +
+#   scale_fill_brewer(palette = "Oranges",
+#                     labels = c('about_integrity' = "Is the paper about ecological integrity?",
+#                                'integrity_calculated' = "Is ecological integrity calculated?",
+#                                'include_animals' = "Does the integrity metric include animals?",
+#                                'animal_communities' = "Does the integrity metric include animal communities?")) +
+#   ylab("Number of papers") + xlab(NULL) +
+#   theme(legend.position = c(0.3, 0.82),
+#         legend.title = element_blank(),
+#         axis.text = element_text(size=8, color="black"),
+#         axis.title = element_text(size=8, color="black"),
+#         legend.text = element_text(size=8, color="black"),
+#         panel.grid = element_blank()))
+# #a
 
 
 # output to hi res
@@ -103,11 +104,43 @@ dat4 <- dat3 %>%
 # a
 # dev.off()
 
-ggsave(a,
-       filename = here('pictures',
+dat3 <- dat2 %>%
+  dplyr::select(Year, about_integrity, 
+                integrity_calculated, animal_communities) %>%
+  pivot_longer(about_integrity:animal_communities,
+               names_to = "category",
+               values_to = "value") %>%
+  mutate(value = case_when(value == "No" ~ 0,
+                   value == "Yes" ~ 1)) %>%
+  group_by(Year, category) %>%
+  summarise(sum = sum(value)) %>%
+  ungroup() %>%
+  arrange(category, Year) %>%
+  group_by(category) %>%
+  mutate(cs = cumsum(sum)) %>%
+  ungroup() %>%
+  mutate(category = factor(category, 
+                           levels = c("about_integrity",
+                                      "integrity_calculated",
+                                      "animal_communities")))
+
+(byyear <- ggplot(dat3, aes(x = Year, y = cs, fill = category)) +
+  ylab("Number of papers") +
+  xlab("Year") +
+  geom_area(position = 'identity', color = "black") +
+  scale_fill_brewer(palette = "Oranges",
+                    labels = c('about_integrity' = "Total papers about integrity",
+                               'integrity_calculated' = "Papers that calculate an integrity metric",
+                               'animal_communities' = "Integrity metric includes animal communities")) +
+  theme(legend.title = element_blank(),
+        panel.grid = element_blank(),
+        legend.position = c(0.4, 0.8)))
+  
+
+ggsave(filename = here('pictures',
                        'R',
                        'studies_by_year.jpg'),
-       width = 6,
+       width = 7.25,
        height = 4,
        units = 'in')
 
@@ -116,8 +149,8 @@ ggsave(a,
 
 dat5 <- dat2 %>%
   dplyr::select(about_integrity, integrity_calculated,
-                include_animals, animal_communities) %>%
-  pivot_longer(1:4,
+                animal_communities) %>%
+  pivot_longer(1:3,
                names_to = "var",
                values_to = "value") %>%
   mutate(value = case_when(value == "No" ~ 0,
@@ -125,49 +158,47 @@ dat5 <- dat2 %>%
   group_by(var) %>%
   summarise(sum = sum(value)) %>%
   ungroup() %>% 
-  add_row(var = "total", sum = 279) %>%
-  mutate(var = factor(var, levels = c("total", 
-                                      "about_integrity",
+  mutate(var = factor(var, levels = c("about_integrity",
                                       "integrity_calculated", 
-                                      "include_animals",
-                                      "animal_communities")),
-         varID = as.numeric(var)) %>%
-  arrange(varID) %>%
-  mutate(diff = sum - lead(sum)) %>%
-  mutate(diff = case_when(var == "animal_communities" ~ sum,
-                          TRUE ~ diff)) %>%
-  #for graphing
-  mutate(y = 1) 
+                                      "animal_communities"))) %>%
+  mutate(r = sqrt(sum/pi),
+         x0 = max(r)/2,
+         y0 = r,
+         x01 = 0,
+         y01 = 0)
 
-(b <- dat5 %>%
-    arrange(var) %>%
-    ggplot(aes(x = y, y = diff, fill= var)) +
-    geom_col(position = "fill") +
-    theme_bw() +
-    scale_fill_brewer(palette = "Oranges",
-                      labels = c('total' = "Total papers in literature review (n = 278)",
-                                 'about_integrity' = "Is the paper about ecological integrity?",
-                                 'integrity_calculated' = "Is ecological integrity calculated?",
-                                 'include_animals' = "Does the integrity metric include animals?",
-                                 'animal_communities' = "Does the integrity metric include animal communities?")) +
-    ylab("Proportion of papers") + xlab(NULL) +
-    scale_y_continuous(labels = scales::percent) +
-    xlim(0.5, 2.25) +
-    theme(legend.position = c(0.3, 0.82),
-          legend.title = element_blank(),
-          axis.text = element_text(size=8, color="black"),
-          axis.title = element_text(size=8, color="black"),
-          legend.text = element_text(size=8, color="black"),
-          panel.grid = element_blank(),
-          axis.text.y = element_blank(),
-          axis.ticks.y = element_blank()) +
-    coord_flip())
+circle1 <- ggplot(dat5, aes(x0 = x0, y0 = y0, r = r, fill = var)) +
+  geom_circle() +
+  theme_void() +
+  coord_fixed() +
+  scale_fill_brewer(palette = "Oranges",
+                    labels = c('about_integrity' = "Total papers about integrity",
+                               'integrity_calculated' = "Papers that calculate an integrity metric",
+                               'animal_communities' = "Integrity metric includes animal communities")) +
+  theme(legend.title = element_blank(),
+        legend.position = 'bottom')
 
-ggsave(b,
-       filename = here('pictures',
+ggsave(filename = here('pictures',
                        'R',
-                       'studies_total.jpg'),
-       width = 6,
+                       'studies_total_circles.jpg'),
+       width = 7.25,
+       height = 4.5,
+       units = 'in')
+
+ggplot(dat5, aes(x0 = x01, y0 = y01, r = r, fill = var)) +
+  geom_circle() +
+  theme_void() +
+  scale_fill_brewer(palette = "Oranges",
+                    labels = c('about_integrity' = "Total papers about integrity",
+                               'integrity_calculated' = "Papers that calculate an integrity metric",
+                               'animal_communities' = "Integrity metric includes animal communities")) +
+  theme(legend.title = element_blank()) +
+  coord_fixed()
+
+ggsave(filename = here('pictures',
+                       'R',
+                       'studies_total_conccircles.jpg'),
+       width = 7.25,
        height = 4.5,
        units = 'in')
 
@@ -185,7 +216,7 @@ unique(dat$Function.Metric)
   group_by(Environment) %>%
   tally() %>%
   ggplot(aes(x = reorder(Environment, n), y = n)) +
-  geom_bar(stat = "identity", fill = "#998ec3",color = "black") +
+  geom_bar(stat = "identity", fill = '#d94701',color = "black") +
   labs(x = "Environment", y = "Number of studies") +
     scale_x_discrete(labels = c("aquatic" = "Aquatic",
                                 "terrestrial" = "Terrestrial",
@@ -197,6 +228,16 @@ unique(dat$Function.Metric)
         axis.title = element_text(size=8, color="black"),
         legend.text = element_text(size=8, color="black"),
         panel.grid = element_blank()))
+
+byyear + env_plot + 
+  plot_annotation(tag_level = "A") 
+
+ggsave(filename = here('pictures',
+                       'R',
+                       'year_env_combo.jpg'),
+       width = 9.5,
+       height = 4.5,
+       units = 'in')
 
 traits <- dat %>%
   separate_longer_delim(Function.notes, delim = ",") %>%
@@ -237,16 +278,16 @@ traits <- dat %>%
           legend.text = element_text(size=8, color="black"),
           panel.grid = element_blank()))
 
-b <- env_plot + trait_plot +
-  plot_annotation(tag_levels = "A")
-
-ggsave(b,
-       filename = here('pictures',
-                       'R',
-                       'study_content.jpg'),
-       width = 6,
-       height = 2.5,
-       units = 'in')
+# b <- env_plot + trait_plot +
+#   plot_annotation(tag_levels = "A")
+# 
+# ggsave(b,
+#        filename = here('pictures',
+#                        'R',
+#                        'study_content.jpg'),
+#        width = 6,
+#        height = 2.5,
+#        units = 'in')
 
 # Supplementary plots -----------------------------------------------------
 
@@ -329,8 +370,9 @@ dat_geo <- dat %>%
           legend.text = element_text(size=8, color="black"),
           panel.grid = element_blank()))
 
-metric_plot + (animal_plot / geography_plot) +
-  plot_annotation(tag_levels = "A")
+metric_plot + trait_plot + animal_plot + geography_plot +
+  plot_annotation(tag_levels = "A") +
+  plot_layout(ncol = 2)
 
 ggsave(filename = here('pictures',
                        'R',
