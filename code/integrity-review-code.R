@@ -145,63 +145,6 @@ ggsave(filename = here('pictures',
        units = 'in')
 
 
-# Another option ----------------------------------------------------------
-
-dat5 <- dat2 %>%
-  dplyr::select(about_integrity, integrity_calculated,
-                animal_communities) %>%
-  pivot_longer(1:3,
-               names_to = "var",
-               values_to = "value") %>%
-  mutate(value = case_when(value == "No" ~ 0,
-                           value == "Yes" ~ 1)) %>%
-  group_by(var) %>%
-  summarise(sum = sum(value)) %>%
-  ungroup() %>% 
-  mutate(var = factor(var, levels = c("about_integrity",
-                                      "integrity_calculated", 
-                                      "animal_communities"))) %>%
-  mutate(r = sqrt(sum/pi),
-         x0 = max(r)/2,
-         y0 = r,
-         x01 = 0,
-         y01 = 0)
-
-circle1 <- ggplot(dat5, aes(x0 = x0, y0 = y0, r = r, fill = var)) +
-  geom_circle() +
-  theme_void() +
-  coord_fixed() +
-  scale_fill_brewer(palette = "Oranges",
-                    labels = c('about_integrity' = "Total papers about integrity",
-                               'integrity_calculated' = "Papers that calculate an integrity metric",
-                               'animal_communities' = "Integrity metric includes animal communities")) +
-  theme(legend.title = element_blank(),
-        legend.position = 'bottom')
-
-ggsave(filename = here('pictures',
-                       'R',
-                       'studies_total_circles.jpg'),
-       width = 7.25,
-       height = 4.5,
-       units = 'in')
-
-ggplot(dat5, aes(x0 = x01, y0 = y01, r = r, fill = var)) +
-  geom_circle() +
-  theme_void() +
-  scale_fill_brewer(palette = "Oranges",
-                    labels = c('about_integrity' = "Total papers about integrity",
-                               'integrity_calculated' = "Papers that calculate an integrity metric",
-                               'animal_communities' = "Integrity metric includes animal communities")) +
-  theme(legend.title = element_blank()) +
-  coord_fixed()
-
-ggsave(filename = here('pictures',
-                       'R',
-                       'studies_total_conccircles.jpg'),
-       width = 7.25,
-       height = 4.5,
-       units = 'in')
-
 # Other explorations ------------------------------------------------------
 
 unique(dat$Environment)
