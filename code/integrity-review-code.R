@@ -137,12 +137,12 @@ dat3 <- dat2 %>%
         legend.position = c(0.4, 0.8)))
   
 
-ggsave(filename = here('pictures',
-                       'R',
-                       'studies_by_year.jpg'),
-       width = 7.25,
-       height = 4,
-       units = 'in')
+# ggsave(filename = here('pictures',
+#                        'R',
+#                        'studies_by_year.jpg'),
+#        width = 7.25,
+#        height = 4,
+#        units = 'in')
 
 
 # Other explorations ------------------------------------------------------
@@ -160,7 +160,7 @@ unique(dat$Function.Metric)
   tally() %>%
   ggplot(aes(x = reorder(Environment, n), y = n)) +
   geom_bar(stat = "identity", fill = '#d94701',color = "black") +
-  labs(x = "Environment", y = "Number of studies") +
+  labs(x = "Environment", y = "Number of papers") +
     scale_x_discrete(labels = c("aquatic" = "Aquatic",
                                 "terrestrial" = "Terrestrial",
                                 'multiple' = "Multiple*",
@@ -178,6 +178,13 @@ byyear + env_plot +
 ggsave(filename = here('pictures',
                        'R',
                        'year_env_combo.jpg'),
+       width = 9.5,
+       height = 4.5,
+       units = 'in')
+
+ggsave(filename = here('pictures',
+                       'R',
+                       'year_env_combo.pdf'),
        width = 9.5,
        height = 4.5,
        units = 'in')
