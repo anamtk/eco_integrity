@@ -46,15 +46,81 @@ bird_responses <- read.csv(here('data',
                                 'worked_example',
                                 "Avian_model_parameter_estimates.csv"))
 
-#trait data already compiled for this paper
-traits <- read.csv(here('data',
+#AVONET traits
+avo_eb <- read.csv(here('data',
                         'worked_example',
-                        'COFrontRange_birdtraits.csv'))
+                        'AVONET_eBird.csv'))
 
 #to get distribution of canopy gaps from the data
 load(here('data',
           'worked_example',
           'Data_compiled.RData'))
+
+species <- read.csv(here('data',
+                         'worked_example',
+                         "Spp_list.csv"))
+
+
+# Compile trait data ------------------------------------------------------
+
+remove_cols <- c("Total.individuals",
+                 "Female",
+                 "Male", "Unknown",
+                 "Complete.measures",
+                 "Beak.Length_Culmen","Beak.Depth" ,
+                 'Beak.Width',"Beak.Length_Nares",
+                 "Tarsus.Length","Wing.Length",
+                 "Kipps.Distance", "Secondary1",
+                 "Tail.Length", "Mass.Source",
+                 "Mass.Refs.Other", "Inference",
+                 "Traits.inferred", "Reference.species")
+
+#for mFD package, this needs to have just traits as 
+#columns and the rownames are the species
+species1 <- species %>%
+  dplyr::select(BirdCode, common_name, species,
+                PIPO_specialist) %>%
+  mutate(species = case_when(species == "Polioptila caerulea " ~ "Polioptila caerulea",
+                             species == "Regulus calendula" ~ 'Corthylio calendula',
+                             TRUE ~ species)) %>%
+  left_join(avo_eb, by = c("species" = "Species2")) %>%
+  dplyr::select(-matches(remove_cols))
+
+#1. the species x trait dataframe
+bird_traits <- species1 %>%
+  dplyr::select(BirdCode, PIPO_specialist,
+                Hand.Wing.Index:Primary.Lifestyle) %>%
+  mutate(Trophic.Level = case_when(Trophic.Level == "Herbivore" ~ 1,
+                                   Trophic.Level == "Omnivore" ~ 2,
+                                   Trophic.Level == "Carnivore" ~ 3)) %>%
+  column_to_rownames(var = 'BirdCode') %>%
+  mutate(PIPO_specialist = factor(PIPO_specialist, levels = c("FALSE", "TRUE")),
+         Habitat = factor(Habitat, levels = c("Human Modified", "Forest",
+                                              "Grassland", "Shrubland",
+                                              "Rock", "Wetland", "Riverine", 
+                                              "Woodland")),
+         Trophic.Niche = factor(Trophic.Niche, levels = c("Granivore",
+                                                          "Omnivore", "Invertivore",
+                                                          "Nectarivore", 
+                                                          "Aquatic predator",
+                                                          'Frugivore')),
+         Primary.Lifestyle = factor(Primary.Lifestyle, levels = c("Terrestrial",
+                                                                  "Aerial", "Generalist",
+                                                                  "Insessorial")),
+         Habitat.Density = factor(Habitat.Density, ordered = T,
+                                  levels = c('1', '2', '3')),
+         Migration = factor(Migration, ordered = T,
+                            levels = c('1', '2', '3')),
+         Trophic.Level = factor(Trophic.Level, ordered = T,
+                                levels = c('1', '2', '3')))
+
+bird_traits2 <- bird_traits %>%
+  rownames_to_column(var= "Species")
+
+write.csv(bird_traits2, here('data.clean',
+                             'traits_COFrontRange',
+                             'COFrontRange_birdtraits.csv'),
+          row.names = F)
 
 # Generate "communities' of different canopy gaps -------------------------
 
