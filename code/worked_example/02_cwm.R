@@ -41,6 +41,18 @@ species <- read.csv(here('data',
                          'worked_example',
                          "Spp_list.csv"))
 
+#to get distribution of canopy gaps from the data
+#we're looking at the "landscape data" from this data list
+load(here('data',
+          'worked_example',
+          'Data_compiled.RData'))
+
+
+# Create scenarios of landscape configuration -----------------------------
+
+hist(landscape_data$PACC10)
+
+
 # Look at CWM of traits ---------------------------------------------------
 
 #link bird data to traits
@@ -52,11 +64,11 @@ cat_birds <- birds2 %>%
   dplyr::select(Species, occupancy, gap, community,
                 PIPO_specialist, Habitat, 
                 Trophic.Niche, Primary.Lifestyle) %>%
-  mutate(assemblage = case_when(gap == -1 ~ "Closed",
-                                gap == 0 ~ "Average",
-                                gap == 6 ~ 'Open')) %>%
+  mutate(assemblage = case_when(gap < 0 ~ "Closed",
+                                gap > 9 ~ 'Open',
+                                TRUE ~ "Intermediate")) %>%
   mutate(assemblage = factor(assemblage, levels = c("Closed",
-                                                    'Average',
+                                                    'Intermediate',
                                                     'Open')))
 
 #from the categorical variables, select
@@ -80,11 +92,12 @@ niche <- cat_birds %>%
   ggplot(aes(x = assemblage, y = abund, fill = assemblage)) +
   geom_boxplot() +
   labs(x = "Canopy",
-       y = "CWM abundance of seed-eaters") +
+       y = "CWM abundance of seed dispersers") +
   scale_fill_manual(values = c('#b35806', '#fee0b6', '#542788')) +
   theme(legend.position = "none",
         axis.title = element_text(size = 15),
-        axis.text = element_text(size = 10)))
+        axis.text = element_text(size = 10),
+        panel.grid = element_blank()))
 
 birds3 <- birds2 %>% 
   filter(Trophic.Niche == "Granivore") %>%
@@ -92,11 +105,11 @@ birds3 <- birds2 %>%
   group_by(Species, gap) %>%
   summarise(CWM_Mass = weighted.mean(Mass, occupancy, na.rm = T)) %>%
   filter(!is.na(CWM_Mass)) %>%
-  mutate(assemblage = case_when(gap == -1 ~ "Closed",
-                                gap == 0 ~ "Average",
-                                gap == 6 ~ 'Open')) %>%
+  mutate(assemblage = case_when(gap < 0 ~ "Closed",
+                                gap > 9 ~ 'Open',
+                                TRUE ~ "Intermediate")) %>%
   mutate(assemblage = factor(assemblage, levels = c("Closed",
-                                                    'Average',
+                                                    'Intermediate',
                                                     'Open')))
 
 (niche2 <- birds2 %>% 
@@ -104,20 +117,25 @@ birds3 <- birds2 %>%
   group_by(Species, gap) %>%
   summarise(CWM_Mass = weighted.mean(Mass, occupancy, na.rm = T)) %>%
   filter(!is.na(CWM_Mass)) %>%
-  mutate(assemblage = case_when(gap == -1 ~ "Closed",
-                                gap == 0 ~ "Average",
-                                gap == 6 ~ 'Open')) %>%
-  mutate(assemblage = factor(assemblage, levels = c("Closed",
-                                                    'Average',
-                                                    'Open'))) %>%
+    mutate(assemblage = case_when(gap < 0 ~ "Closed",
+                                  gap > 9 ~ 'Open',
+                                  TRUE ~ "Intermediate")) %>%
+    mutate(assemblage = factor(assemblage, levels = c("Closed",
+                                                      'Intermediate',
+                                                      'Open'))) %>%
   ggplot(aes(x = CWM_Mass, fill = assemblage)) +
   geom_density(position = "dodge", alpha = 0.6) +
   labs(x = "CWM species mass (g)",
-       y = "Proportion of seed-eating species") +
+       y = "Proportion of seed-dispersing species") +
   scale_fill_manual(values = c('#b35806', '#fee0b6', '#542788')) +
+    facet_grid(assemblage~.) +
   theme(legend.position = "none",
         axis.title = element_text(size = 15),
-        axis.text = element_text(size = 10)))
+        axis.text = element_text(size = 10),
+        panel.grid = element_blank(),
+        strip.background = element_rect(color = 'white', 
+                                        fill = "white"),
+        strip.text  = element_text(size = 10)))
   
 
 niche1 + niche2
@@ -128,15 +146,26 @@ ggsave(here('pictures', 'worked_example_figure.jpeg'),
        height = 4,
        units = c('in'))
 
+ggsave(here('pictures', 'worked_example_figure.pdf'),
+       plot = last_plot(),
+       width = 6.5,
+       height = 4,
+       units = c('in'))
+
+
 
 # Example birds -----------------------------------------------------------
 
 birds2 %>%
-  filter(Species %in% c("LEGO", "PISI")) %>%
-  distinct(Species, Mass)
+  #filter(Species %in% c("LEGO", "PISI")) %>%
+  filter(Trophic.Niche == "Granivore") %>%
+  distinct(Species, Mass) %>%
+  arrange(Mass)
 
 species %>%
-  filter(BirdCode %in% c("LEGO", "PISI"))
+  filter(BirdCode %in% c("LEGO", "PISI", "AMGO", "DEJU",
+                         "HOFI", "HOSP", "CAFI", "LASP",
+                         "RECR"))
 #small species examples: lesser goldfinch, pine siskin
 
 species %>%
@@ -144,9 +173,108 @@ species %>%
 #large species: BTPI, ROPI: Rock Pigeon, Band-tailed pigeon
 
 species %>%
-  filter(BirdCode %in% c("MODO", "ACWO"))
+  filter(BirdCode %in% c("MODO", "ACWO", "RWBL"))
 #medium species: MODO, ACWO: Mourning dove, Acorn woodpecker
 
 species %>%
   filter(BirdCode %in% birds3$Species) %>%
   dplyr::select(common_name)
+
+
+# MGMT scenarios ----------------------------------------------------------
+
+#scenario 1: no mgmt, current distribution
+#High canopy cover in general:
+scenario_df <- as.data.frame(cbind(no_change = (1-landscape_data$PACC10),
+                                   fire = (1- landscape_data$PACC10) - 
+                                     runif(length(landscape_data$PACC10), min = 0.6, max = 1),
+                                   restoration = (1-landscape_data$PACC10))) %>%
+  mutate(fire = case_when(fire > 1 ~ 1,
+                          fire < 0 ~ 0,
+                          TRUE ~ fire)) %>%
+  mutate(restoration = case_when(restoration > 0.99 ~ restoration,
+                                 restoration < 0.99 & restoration > 0 ~ 
+                                   restoration - runif(n(), min =0.1, max =  0.7))) %>%
+  mutate(restoration = case_when(restoration > 1 ~ 1,
+                          restoration < 0 ~ 0,
+                          TRUE ~ restoration))
+
+# New facet label names for scenario variable
+scen.labs <- c("No change", "High severity fire", "Restoration")
+names(scen.labs) <- c("no_change", "fire", 'restoration')
+
+(scenario_df %>%
+  pivot_longer(no_change:restoration,
+               names_to = "scenario",
+               values_to = "canopy") %>%
+  mutate(scenario = factor(scenario, levels = c("no_change",
+                                                "fire",
+                                                "restoration"))) %>%
+  ggplot() +
+  geom_density(aes(x = canopy), color = "black", fill = '#525252') +
+  facet_grid(scenario~.,
+             scales = "free_y",
+             labeller = labeller(scenario = scen.labs)) +
+  theme(panel.grid = element_blank(),
+        strip.background = element_rect(color = 'white', 
+                                        fill = "white"),
+        strip.text  = element_text(size = 10),
+        legend.position = "none"))
+
+(noplot <- scenario_df %>%
+  ggplot() +
+  geom_density(aes(x = no_change*100),
+                 color = "black", 
+                 fill = '#525252') +
+  theme(panel.grid = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank()) +
+    xlim(0, 100) +
+  labs(x = "Canopy cover (%)",
+       y = ""))
+
+
+ggsave(here('pictures', 'no_mgmt_worked_example.pdf'),
+       plot = noplot,
+       width = 3,
+       height = 2,
+       units = c('in'))
+
+
+(fireplot <- scenario_df %>%
+  ggplot() +
+  geom_density(aes(x = fire*100),
+                 color = "black", 
+                 fill = '#525252') +
+  theme(panel.grid = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank()
+        ) +
+    xlim(0, 100) +
+  labs(x = "Canopy cover (%)",
+       y = ""))
+
+ggsave(here('pictures', 'fire_worked_example.pdf'),
+       plot = fireplot,
+       width = 3,
+       height = 2,
+       units = c('in'))
+
+(restorationplot <- scenario_df %>%
+  ggplot() +
+  geom_density(aes(x = restoration*100),
+                 color = "black", 
+                 fill = '#525252') +
+  theme(panel.grid = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank()) +
+  labs(x = "Canopy cover (%)",
+       y = ""))
+
+ggsave(here('pictures', 'restoration_worked_example.pdf'),
+       plot = restorationplot,
+       width = 3,
+       height = 2,
+       units = c('in'))
+
+

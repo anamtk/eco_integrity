@@ -100,11 +100,24 @@ community_sim_fun(cangap = -1)
 gaps <- landscape_data$PACC10
 meangaps <- mean(gaps)
 sdgaps <- sd(gaps)
-gapscale <- scale(gaps)
-min(gapscale) #-1
-max(gapscale) #6
-min(gaps)
-max(gaps)
+
+#get the middle value of -1 and 6, corresponding to 0 and 0.69% gaps
+#0.3433=scaled*sdgaps + mean
+#0.3433-meangaps = scaled*sdgaps
+#(0.3433-meangaps)/sdgaps = scaled
+#(0.3433-meangaps)/sdgaps
+#middle of those two values would be 2.44 then
+#scaled values to simluate communities at
+mingap <- (0-meangaps)/sdgaps #-1.01
+middlegap <- (0.5-meangaps)/sdgaps #4.02
+maxgap <- (1-meangaps)/sdgaps #9.04
+
+#observed data min and max values
+#gapscale <- scale(gaps)
+# min(gapscale) #-1
+# max(gapscale) #6
+# min(gaps)
+# max(gaps)
 #used for standardizing data, 
 #primarily by centering (subtracting the mean) 
 #and scaling (dividing by the standard deviation). 
@@ -113,8 +126,8 @@ max(gaps)
 
 #min, mean, max, -1, 0, 6
 
-gap_meta <- c(rep(-1, 25), rep(0, 25), 
-              rep(6, 25))
+gap_meta <- c(rep(mingap, 25), rep(middlegap, 25), 
+              rep(maxgap, 25))
 
 comm_list <- lapply(gap_meta, community_sim_fun)
 
